@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        header { background: rgba(0,0,0,0.9); color: white; padding: 20px 0; position: sticky; top: 0; z-index: 1000; }
+        .header-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #667eea; }
+        .cart-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; position: relative; font-size: 16px; }
+        .cart-count { position: absolute; top: -8px; right: -8px; background: #ff6b6b; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .hero { text-align: center; color: white; margin-bottom: 50px; }
+        .hero h1 { font-size: 48px; margin-bottom: 10px; }
+        .hero p { font-size: 20px; opacity: 0.9; }
+        .filters { background: white; padding: 25px; border-radius: 15px; margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; }
+        .filter-group { display: flex; gap: 10px; align-items: center; }
+        .filter-group label { font-weight: 600; color: #667eea; }
+        .filter-group select { padding: 10px 15px; border: 2px solid #667eea; border-radius: 8px; cursor: pointer; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .product-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .product-card:hover { transform: translateY(-10px); }
+        .product-image { width: 100%; height: 250px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; }
+        .product-info { padding: 20px; }
+        .product-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .variant-label { font-size: 12px; color: #666; font-weight: 600; margin-bottom: 8px; display: block; }
+        .variant-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .variant-btn { padding: 8px 14px; border: 2px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .variant-btn:hover { border-color: #667eea; }
+        .variant-btn.active { background: #667eea; color: white; border-color: #667eea; font-weight: 600; }
+        .product-price { font-size: 24px; font-weight: 700; color: #667eea; margin: 15px 0; }
+        .product-specs { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .specs-item { margin: 5px 0; }
+        .add-to-cart-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { font-size: 24px; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .cart-item-details { flex: 1; }
+        .cart-item-name { font-weight: 600; }
+        .cart-item-variant { font-size: 12px; color: #999; }
+        .cart-item-price { font-weight: 700; color: #667eea; }
+        .remove-btn { background: #ff6b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .cart-summary { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .summary-row.total { font-size: 18px; font-weight: 700; color: #667eea; border-top: 2px solid #ddd; padding-top: 10px; }
+        .checkout-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .empty-cart { text-align: center; padding: 40px 20px; color: #999; }
+        .thank-you-modal { text-align: center; }
+        .checkmark { font-size: 80px; margin: 30px 0; }
+        .thank-you-title { font-size: 32px; font-weight: 700; color: #667eea; margin-bottom: 20px; }
+        .thank-you-message { font-size: 18px; color: #666; margin-bottom: 30px; line-height: 1.6; }
+        .order-total { font-size: 24px; color: #667eea; font-weight: 700; margin: 20px 0; }
+        .home-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">🍎 iPhone Store</div>
+            <button class="cart-btn" onclick="openCart()">
+                🛒 Cart <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Welcome to iPhone Store</h1>
+            <p>Explore all iPhone models and purchase your favorite device</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Filter by Model:</label>
+                <select id="modelFilter" onchange="filterProducts()">
+                    <option value="">All Models</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Filter by Price:</label>
+                <select id="priceFilter" onchange="filterProducts()">
+                    <option value="">All Prices</option>
+                    <option value="budget">Under $500</option>
+                    <option value="mid">$500 - $1000</option>
+                    <option value="premium">$1000+</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
+
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Shopping Cart</span>
+                <button class="close-btn" onclick="closeCart()">&times;</button>
+            </div>
+            <div id="cartItems"></div>
+            <div id="cartSummary"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="thankYouModal">
+        <div class="modal-content thank-you-modal">
+            <div class="checkmark">✓</div>
+            <div class="thank-you-title">Thank You for Shopping!</div>
+            <div class="thank-you-message">
+                <p>Your order has been placed successfully.</p>
+                <div class="order-total" id="orderTotal">$0.00</div>
+                <p>We appreciate your business!</p>
+            </div>
+            <button class="home-btn" onclick="closeThanks()">Continue Shopping</button>
+        </div>
+    </div>
+
+    <script>
+        const iphones = [
+            { id: 1, name: 'iPhone 17 Pro Max', basePrice: 1299, variants: [{ name: 'Black', storage: '256GB', price: 1299 }, { name: 'Black', storage: '512GB', price: 1499 }, { name: 'Silver', storage: '256GB', price: 1299 }], specs: ['6.9" XDR Display', 'A19 Pro Chip', '50MP Camera', 'Titanium'] },
+            { id: 2, name: 'iPhone 17 Pro', basePrice: 1099, variants: [{ name: 'Black', storage: '256GB', price: 1099 }, { name: 'Black', storage: '512GB', price: 1299 }, { name: 'Silver', storage: '256GB', price: 1099 }], specs: ['6.3" XDR Display', 'A19 Pro Chip', '50MP Camera', 'Titanium'] },
+            { id: 3, name: 'iPhone 17', basePrice: 899, variants: [{ name: 'Black', storage: '128GB', price: 899 }, { name: 'Blue', storage: '128GB', price: 899 }, { name: 'Red', storage: '128GB', price: 899 }], specs: ['6.1" Super Retina', 'A19 Chip', '48MP Camera', 'Aluminum'] },
+            { id: 4, name: 'iPhone 17 Plus', basePrice: 999, variants: [{ name: 'Black', storage: '128GB', price: 999 }, { name: 'Blue', storage: '128GB', price: 999 }], specs: ['6.7" Super Retina', 'A19 Chip', '48MP Camera', 'Aluminum'] },
+            { id: 5, name: 'iPhone 16 Pro Max', basePrice: 1199, variants: [{ name: 'Black', storage: '256GB', price: 1199 }, { name: 'Silver', storage: '256GB', price: 1199 }], specs: ['6.9" XDR Display', 'A18 Pro Chip', '48MP Camera', 'Titanium'] },
+            { id: 6, name: 'iPhone 16 Pro', basePrice: 999, variants: [{ name: 'Black', storage: '256GB', price: 999 }, { name: 'Silver', storage: '256GB', price: 999 }], specs: ['6.3" XDR Display', 'A18 Pro Chip', '48MP Camera', 'Titanium'] },
+            { id: 7, name: 'iPhone 16', basePrice: 799, variants: [{ name: 'Black', storage: '128GB', price: 799 }, { name: 'White', storage: '128GB', price: 799 }], specs: ['6.1" Super Retina', 'A18 Chip', '48MP Camera', 'Aluminum'] },
+            { id: 8, name: 'iPhone 16 Plus', basePrice: 899, variants: [{ name: 'Black', storage: '128GB', price: 899 }, { name: 'White', storage: '128GB', price: 899 }], specs: ['6.7" Super Retina', 'A18 Chip', '48MP Camera', 'Aluminum'] },
+            { id: 9, name: 'iPhone 15 Pro Max', basePrice: 1199, variants: [{ name: 'Black', storage: '256GB', price: 1199 }, { name: 'Gold', storage: '256GB', price: 1199 }], specs: ['6.7" Super Retina XDR', 'A17 Pro Chip', '12MP Camera', 'Titanium'] },
+            { id: 10, name: 'iPhone 15 Pro', basePrice: 999, variants: [{ name: 'Black', storage: '256GB', price: 999 }, { name: 'Gold', storage: '256GB', price: 999 }], specs: ['6.1" Super Retina XDR', 'A17 Pro Chip', '12MP Camera', 'Titanium'] },
+            { id: 11, name: 'iPhone 15', basePrice: 799, variants: [{ name: 'Black', storage: '128GB', price: 799 }, { name: 'Blue', storage: '128GB', price: 799 }], specs: ['6.1" Liquid Retina', 'A16 Chip', '12MP Camera', 'Aluminum'] },
+            { id: 12, name: 'iPhone 14 Pro', basePrice: 899, variants: [{ name: 'Black', storage: '256GB', price: 899 }, { name: 'Gold', storage: '256GB', price: 899 }], specs: ['6.1" Super Retina XDR', 'A16 Chip', '12MP Camera', 'Stainless Steel'] }
+        ];
+
+        let cart = [];
+        let selectedVariants = {};
+
+        function renderProducts(products = iphones) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(phone => `
+                <div class="product-card">
+                    <div class="product-image">📱</div>
+                    <div class="product-info">
+                        <div class="product-title">${phone.name}</div>
+                        <div class="product-variants">
+                            <label class="variant-label">🎨 Color</label>
+                            <div class="variant-buttons" id="colors-${phone.id}">
+                                ${[...new Set(phone.variants.map(v => v.name))].map(color => 
+                                    `<button class="variant-btn ${selectedVariants[phone.id]?.color === color ? 'active' : ''}" onclick="selectColor(${phone.id}, '${color}', event)">${color}</button>`
+                                ).join('')}
+                            </div>
+                            <label class="variant-label">💾 Storage</label>
+                            <div class="variant-buttons" id="storage-${phone.id}">
+                                ${[...new Set(phone.variants.map(v => v.storage))].map(storage => 
+                                    `<button class="variant-btn ${selectedVariants[phone.id]?.storage === storage ? 'active' : ''}" onclick="selectStorage(${phone.id}, '${storage}', event)">${storage}</button>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        <div class="product-price" id="price-${phone.id}">${phone.basePrice}</div>
+                        <div class="product-specs">
+                            ${phone.specs.map(spec => `<div class="specs-item">• ${spec}</div>`).join('')}
+                        </div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${phone.id})">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+
+            iphones.forEach(phone => {
+                if (!selectedVariants[phone.id]) {
+                    selectedVariants[phone.id] = {
+                        color: phone.variants[0].name,
+                        storage: phone.variants[0].storage
+                    };
+                }
+            });
+        }
+
+        function selectColor(phoneId, color, event) {
+            event.target.classList.add('active');
+            document.querySelectorAll(`#colors-${phoneId} .variant-btn`).forEach(btn => {
+                if (btn !== event.target) btn.classList.remove('active');
+            });
+            selectedVariants[phoneId].color = color;
+            updatePrice(phoneId);
+        }
+
+        function selectStorage(phoneId, storage, event) {
+            event.target.classList.add('active');
+            document.querySelectorAll(`#storage-${phoneId} .variant-btn`).forEach(btn => {
+                if (btn !== event.target) btn.classList.remove('active');
+            });
+            selectedVariants[phoneId].storage = storage;
+            updatePrice(phoneId);
+        }
+
+        function updatePrice(phoneId) {
+            const phone = iphones.find(p => p.id === phoneId);
+            const variant = phone.variants.find(v => v.name === selectedVariants[phoneId].color && v.storage === selectedVariants[phoneId].storage);
+            if (variant) document.getElementById(`price-${phoneId}`).textContent = `$${variant.price}`;
+        }
+
+        function addToCart(phoneId) {
+            const phone = iphones.find(p => p.id === phoneId);
+            const variant = phone.variants.find(v => v.name === selectedVariants[phoneId].color && v.storage === selectedVariants[phoneId].storage);
+            
+            cart.push({
+                id: Date.now(),
+                phoneId,
+                name: phone.name,
+                color: selectedVariants[phoneId].color,
+                storage: selectedVariants[phoneId].storage,
+                price: variant.price
+            });
+            
+            updateCartCount();
+            alert('✓ Added to cart!');
+        }
+
+        function updateCartCount() {
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+
+        function removeFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCartCount();
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart">🛒 Your cart is empty</div>';
+                cartSummary.innerHTML = '';
+                return;
+            }
+
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-variant">${item.color} - ${item.storage}</div>
+                    </div>
+                    <div class="cart-item-price">$${item.price}</div>
+                    <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const tax = Math.round(total * 0.1 * 100) / 100;
+            const finalTotal = Math.round((total + tax) * 100) / 100;
+
+            cartSummary.innerHTML = `
+                <div class="cart-summary">
+                    <div class="summary-row"><span>Subtotal:</span><span>$${total.toFixed(2)}</span></div>
+                    <div class="summary-row"><span>Tax (10%):</span><span>$${tax.toFixed(2)}</span></div>
+                    <div class="summary-row total"><span>Total:</span><span>$${finalTotal.toFixed(2)}</span></div>
+                    <button class="checkout-btn" onclick="checkout('${finalTotal}')">Proceed to Checkout</button>
+                </div>
+            `;
+        }
+
+        function checkout(total) {
+            document.getElementById('orderTotal').textContent = '$' + total;
+            document.getElementById('cartModal').classList.remove('show');
+            document.getElementById('thankYouModal').classList.add('show');
+            cart = [];
+            updateCartCount();
+        }
+
+        function openCart() {
+            renderCart();
+            document.getElementById('cartModal').classList.add('show');
+        }
+
+        function closeCart() {
+            document.getElementById('cartModal').classList.remove('show');
+        }
+
+        function closeThanks() {
+            document.getElementById('thankYouModal').classList.remove('show');
+        }
+
+        function filterProducts() {
+            const model = document.getElementById('modelFilter').value;
+            const priceRange = document.getElementById('priceFilter').value;
+            
+            let filtered = iphones;
+            if (model) filtered = filtered.filter(p => p.name === model);
+            if (priceRange === 'budget') filtered = filtered.filter(p => p.basePrice < 500);
+            if (priceRange === 'mid') filtered = filtered.filter(p => p.basePrice >= 500 && p.basePrice <= 1000);
+            if (priceRange === 'premium') filtered = filtered.filter(p => p.basePrice > 1000);
+            
+            renderProducts(filtered);
+        }
+
+        // Populate filters
+        const models = [...new Set(iphones.map(p => p.name))];
+        const modelSelect = document.getElementById('modelFilter');
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+
+        // Initial render
+        renderProducts();
+    </script>
+</body>
+</html>
